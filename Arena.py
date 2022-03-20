@@ -7,11 +7,11 @@ Things_list = [
             ("Кольчуга", [0.1, 0.04, 0.025]),
             ("Броня вавилона", [0.1, 0.01, 0.1]),
             ("Сандали Ахилеса", [0.4, 0.015, 0.07]),
-            ("Плащ Немезиды", [0.2, 0.033, 0.06]),
+            ("Плащ Нимезиды", [0.2, 0.033, 0.06]),
 ]
 
 """Имена бойцов."""
-warriors_names = ("Ахилес", "Архимед",
+warriors_names = ["Ахилес", "Архимед",
                   "Бульдог", "Рыцарь",
                   "Ворон", "Астерикс",
                   "Обеликс", "Панармикс",
@@ -20,8 +20,8 @@ warriors_names = ("Ахилес", "Архимед",
                   "Никита Добрынич", "Змей Горыныч",
                   "Баба Яга", "Кощей бессмертный",
                   "Шут", "Князь Гвидон",
-                  "Скороход", "Голландец"
-                  )
+                  "Скороход", "Голландец",
+                  ]
 
 """Лист с базовыми характеристиками здоровье, урон, защита"""
 List_base = (200, 100, 10)
@@ -69,6 +69,9 @@ class Person:
     def attack_damage(self, attack):  # расчет урона после аттаки
         return (attack.damage-attack.damage*(self.armor/100))  # величина урона
 
+    def kritikal(self) -> float:
+        return 1
+
 
 class Paladin(Person):
     """Палладин с увеличенным здоровьем и защитой."""
@@ -99,14 +102,62 @@ class Warrior (Person):
         self.name = name + (" (Воин)")
 
 
+class Elf (Person):
+    """Эльф с броней и уклоном."""
+
+    def __init__(self,
+                 name: str,
+                 health: float,
+                 damage: float,
+                 armor: float,
+                 ) -> None:
+        super().__init__(name, health, damage, armor)
+        self.name = name + (" (Эльф)")
+        self.armor = armor*2
+
+    def attack_damage(self, attack):  # расчет урона после аттаки
+        t = random.randint(0, 1)  # 50 процентный шанс уклониться
+        if t != 0:
+            Attac_force = attack.damage-attack.damage*(self.armor/100)
+        else:
+            Attac_force = 0
+            print(f'-----------{self.name} уклонился! Урон '
+                  'будет равен 0----------')
+        return Attac_force
+
+
+class Russian_Bogatir(Person):
+    """Русский богатырь с критическим ударом."""
+    def __init__(self,
+                 name: str,
+                 health: float,
+                 damage: float,
+                 armor: float,
+                 ) -> None:
+        super().__init__(name, health, damage, armor)
+        self.damage = damage*1.2
+        self.name = name + (" (Русский богатырь)")
+        self.armor = armor*2
+        self.health = health*2
+
+    def kritikal(self):  # 50% шанс крит
+        t = random.randint(0, 1)  # 50% шанс крит
+        if t != 0:
+            krit_damage = 2
+            print(f'------{self.name} наносит критический удар!--------')
+        else:
+            krit_damage = 1
+        return krit_damage
+
+
 """Cловарь распределения персонажей."""
-Dict_person = {Person: 7, Paladin: 2, Warrior: 1}
-
-
-"""Создание спсика вещей things."""
+"""Максимальное число игроков 20 (ограничение по словарб имен)"""
+Dict_person = {Person: 2, Paladin: 2, Warrior: 2, Elf: 7, Russian_Bogatir: 3}
 
 
 def create_things(Things_list: list):
+    """Создание спсика вещей things."""
+
     print("Создаем вещи:")
     things = list()
     for i in Things_list:
@@ -123,27 +174,25 @@ def create_things(Things_list: list):
 
 
 def create_warriors(warriors_names, things):
+    """Создание бойцов."""
+
     All_warriors = list()  # Список всех бойцов
     i = 0  # подсчет количества персонажей
-    Sum_warriors = sum(Dict_person.values())
-
-    while len(All_warriors) < Sum_warriors:
-
-        if len(All_warriors) < Dict_person[Person]:
-            warriors = Person(random.choice(warriors_names), *List_base)
-        elif len(All_warriors) >= Dict_person[Person] and len(All_warriors) < (Dict_person[Person] + Dict_person[Paladin]):
-            warriors = Paladin(random.choice(warriors_names), *List_base)
-        else:
-            warriors = Warrior(random.choice(warriors_names), *List_base)
-
-        if warriors not in All_warriors:
-            i += 1
-            print(f'Создан персонаж №{i} : {warriors.name}.')
-            warriors.set_things(things)
-            All_warriors.append(warriors)
-            print(f'Здоровье: {warriors.health:.1f}, урон: '
-                  f'{warriors.damage:.1f}, защита: {warriors.armor:.1f}')
-            print()
+    for Key_dict in Dict_person:
+        k = 0
+        while k < Dict_person[Key_dict]:
+            his_name = random.choice(warriors_names)
+            warriors = Key_dict(his_name, *List_base)
+            warriors_names.remove(his_name)  # удаляем использоавнные имена
+            if warriors not in All_warriors:
+                k += 1
+                i += 1
+                print(f'Создан боец: № {i}: {warriors.name}.')
+                warriors.set_things(things)
+                All_warriors.append(warriors)
+                print(f'Здоровье: {warriors.health:.1f}, урон: '
+                      f'{warriors.damage:.1f}, защита: {warriors.armor:.1f}')
+                print()
     print("-------------------Все персонажи созданы----------------------")
     return All_warriors
 
@@ -153,11 +202,10 @@ def Fight(fighter1, fighter2):
     HitPoints1 = fighter1.health
     HitPoints2 = fighter2.health
 
-    print(f'--------новый бой: {fighter1.name} здоровье {HitPoints1} vs '
+    print(f'--------Новый бой: {fighter1.name} здоровье {HitPoints1} vs '
           f'{fighter2.name} здоровье {HitPoints2}-------------')
     while HitPoints > 0:
-
-        Attack_point = fighter1.attack_damage(fighter2)
+        Attack_point = fighter1.attack_damage(fighter2) * fighter2.kritikal()
         HitPoints1 = HitPoints1-Attack_point
         if HitPoints1 < 0:
             HitPoints1 = 0
@@ -168,7 +216,8 @@ def Fight(fighter1, fighter2):
             break
 
         if HitPoints2 > 0:
-            Attack_point = fighter2.attack_damage(fighter1)
+            Attack_point = (fighter2.attack_damage(fighter1)
+                            * fighter1.kritikal())
             HitPoints2 = HitPoints2-Attack_point
             if HitPoints2 < 0:
                 HitPoints2 = 0
@@ -185,9 +234,10 @@ def Fight(fighter1, fighter2):
     else:
         lost = fighter1
         win = fighter2
-    print(f'------------------Итог: {fighter1.name}:'
+    print(f'------------------Итог: {fighter1.name}: '
           f'здоровье {HitPoints1:.1f}, '
-          f'{fighter2.name}: здоровье {HitPoints2:.1f}-----победил {win.name}')
+          f'{fighter2.name}: здоровье {HitPoints2:.1f}')
+    print(f'----------победил {win.name}-------------')
     print()
     return lost
 
@@ -204,14 +254,14 @@ print()
 
 
 while len(All_warriors) > 1:
-        fighter1 = random.choice(All_warriors)  # выбрали бойца номер 1
-        fighter2 = random.choice(All_warriors)  # выбрали бойца номер 2
-        if fighter1 != fighter2:
-            lost = Fight(fighter1, fighter2)
-            All_warriors.remove(lost)
-            for i in range(len(All_warriors)):
-                print(f'Пока еще жив: {All_warriors[i].name}')
-            print()
+    fighter1 = random.choice(All_warriors)  # выбрали бойца номер 1
+    fighter2 = random.choice(All_warriors)  # выбрали бойца номер 2
+    if fighter1 != fighter2:
+        lost = Fight(fighter1, fighter2)
+        All_warriors.remove(lost)
+        for i in range(len(All_warriors)):
+            print(f'Пока еще жив: {All_warriors[i].name}')
+        print()
 
 
 print(f'Победитель: {All_warriors[0].name}')
