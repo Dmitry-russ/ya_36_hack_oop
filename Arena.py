@@ -99,7 +99,7 @@ class Warrior (Person):
         self.name = name + (" (Воин)")
 
 
-"""Cловарь распределения."""
+"""Cловарь распределения персонажей."""
 Dict_person = {Person: 7, Paladin: 2, Warrior: 1}
 
 
@@ -124,10 +124,13 @@ def create_things(Things_list: list):
 def create_warriors(warriors_names, things):
     All_warriors = list()  # Список всех бойцов
     i = 0  # подсчет количества персонажей
-    while len(All_warriors) < 10:
+    Sum_warriors = sum(Dict_person.values())
+
+    while len(All_warriors) < Sum_warriors:
+
         if len(All_warriors) < Dict_person[Person]:
             warriors = Person(random.choice(warriors_names), *List_base)
-        elif len(All_warriors) > 6 and len(All_warriors) < 9:
+        elif len(All_warriors) >= Dict_person[Person] and len(All_warriors) < (Dict_person[Person] + Dict_person[Paladin]):
             warriors = Paladin(random.choice(warriors_names), *List_base)
         else:
             warriors = Warrior(random.choice(warriors_names), *List_base)
@@ -139,6 +142,7 @@ def create_warriors(warriors_names, things):
             All_warriors.append(warriors)
             print(f'Здоровье: {warriors.health:.1f}, урон: '
                   f'{warriors.damage:.1f}, защита: {warriors.armor:.1f}')
+            print()
     print("-------------------Все персонажи созданы----------------------")
     return All_warriors
 
@@ -191,6 +195,12 @@ def Fight(fighter1, fighter2):
 
 things = create_things(Things_list)  # создаю вещи
 All_warriors = create_warriors(warriors_names, things)
+print()
+print('В битве учавствуют:')
+for i in range(len(All_warriors)):
+    print(f'{All_warriors[i].name}')
+print()
+
 
 while len(All_warriors) > 1:
         fighter1 = random.choice(All_warriors)  # выбрали бойца номер 1
@@ -198,8 +208,9 @@ while len(All_warriors) > 1:
         if fighter1 != fighter2:
             lost = Fight(fighter1, fighter2)
             All_warriors.remove(lost)
-        for i in range(len(All_warriors)):
-            print(f' Пока еще жив: {All_warriors[i].name}')
+            for i in range(len(All_warriors)):
+                print(f'Пока еще жив: {All_warriors[i].name}')
+            print()
 
 
 print(f'Победитель: {All_warriors[0].name}')
