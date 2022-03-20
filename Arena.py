@@ -116,8 +116,9 @@ def create_things(Things_list: list):
         print(f'здоровье: +{one_thing.health_percent*100:.1f}%, урон: '
               f'+{one_thing.damage_percent*100:.1f}%, защита: '
               f'+{one_thing.armor_percent*100:.1f}%')
-
+    print()
     print("------------------------Все объекты созданы----------------------")
+    print()
     return things
 
 
