@@ -33,6 +33,9 @@ warriors_names = ("Ахилес", "Архимед",
             "Скороход", "Голландец"
             )
 
+"""Лист с базовыми характеристиками здоровье, урон, защита"""
+List_base = (200, 100, 10)
+
 class Thing:
     """Класс с вещами"""
 
@@ -57,20 +60,21 @@ class Person:
                  damage: float,
                  armor: float,
                  ) -> None:
-        self.name = name
+        self.name = name + " (Персонаж)"
         self.health = health
         self.damage = damage
         self.armor = armor
 
-    def set_things(self, things):
+    def set_things(self, things): # применяю вещи к персонажу
         random_index = random.randint(0, len(things) - 1)
         print (f'{self.name} получает: {things[random_index].name}.')
         self.health = (self.health*things[random_index].health_percent + self.health)
         self.damage = (self.damage*things[random_index].damage_percent + self.damage)
         self.armor = (self.armor*things[random_index].armor_percent + self.armor)
 
-
-
+    def attack_damage(self, attack): # расчет урона после аттаки
+        Attack_point = (attack.damage-attack.damage*(self.armor/100))
+        self.health = self.health - Attack_point
 
         
 class Paladin(Person):
@@ -82,7 +86,8 @@ class Paladin(Person):
                  damage: float,
                  armor: float,
                  ) -> None:
-        super().__init__(name, damage)
+        super().__init__(name, health, damage, armor)
+        self.name = name + (" (Паладин)")
         self.health = health*2
         self.armor = armor*2    
 
@@ -95,8 +100,9 @@ class Warrior (Person):
                  damage: float,
                  armor: float,
                  ) -> None:
-        super().__init__(name, health, armor)
+        super().__init__(name, health, damage, armor)
         self.damage = damage*2
+        self.name = name + (" (Воин)")
 
 """Создание спсика вещей things."""
 def create_things(Things_list: list):
@@ -108,20 +114,61 @@ def create_things(Things_list: list):
         things.append(one_thing)
         print(f'здоровье: +{one_thing.health_percent*100:.1f}%, урон: ' 
               f'+{one_thing.damage_percent*100:.1f}%, защита: +{one_thing.armor_percent*100:.1f}%') 
+    
+    print("------------------------Все объекты созданы-----------------------------")
     return things
 
-def create_warriors (warriors_names, things)-> Person:
-    random_index = random.randint(0, len(warriors_names) - 1)
-    warriors = Person(warriors_names[random_index], 100, 100, 100)
-    print (f'Создан персонаж: {warriors.name}.')
-    warriors.set_things(things)
-    print (f'Здоровье: {warriors.health:.1f}, урон: ' 
-              f'{warriors.damage:.1f}, защита: {warriors.armor:.1f}')
+def create_warriors (warriors_names, things):
+    All_warriors = list()  # Список всех бойцов 
+    for i in range(11):
+        random_index = random.randint(0, len(warriors_names) - 1)
+        if i < 7:
+            warriors = Person(warriors_names[random_index], *List_base)
+        elif i > 6 and i < 9:
+            warriors = Paladin(warriors_names[random_index], *List_base)
+        else:
+            warriors = Warrior(warriors_names[random_index], *List_base)
+        print (f'Создан персонаж: {warriors.name}.')
+        warriors.set_things(things)
+        All_warriors.append(warriors)
+        print (f'Здоровье: {warriors.health:.1f}, урон: ' 
+               f'{warriors.damage:.1f}, защита: {warriors.armor:.1f}') 
+    print("------------------------Все персонажи созданы-----------------------------")
+    return All_warriors
 
 
+
+def Fight(fighter1, fighter2):
+    HitPoints: float = 100 #переменная для контроля здоровья в ходе битвы
+    while HitPoints> 0:
+        HitPoints = fighter1.health
+        fighter1.attack_damage(fighter2)
+        print (f'{fighter2.name} наносит удар по {fighter1.name} на {fighter2.damage}'
+               f'урона, здоровье {fighter1.name}: {fighter1.health:.1f}')  #поправить урон
+        fighter2.attack_damage(fighter1)
+        print (f'{fighter1.name} наносит удар по {fighter2.name} на {fighter1.damage}'
+               f'урона, здоровье {fighter2.name}: {fighter2.health:.1f}')  #поправить урон
+        HitPoints = max(fighter1.health, fighter2.health)
+    return fighter1
+
+
+
+
+"""Запуск основного кода."""
 
 things=create_things(Things_list)
-for i in range(11):
-    create_warriors(warriors_names, things)
+All_warriors=create_warriors(warriors_names, things)
+while  len(All_warriors)>1:
+        fighter1 = random.choice(All_warriors) # выбрали бойца номер 1
+        fighter2 = random.choice(All_warriors) # выбрали бойца номер 2
+        if fighter1 != fighter2:
+            lost = Fight(fighter1, fighter2)  # функция боя определяем кто остается и кого убираем с ринга
+            All_warriors.remove(lost)
 
+
+print (f'Победитель: {All_warriors[0].name}')
+
+
+
+    
 
