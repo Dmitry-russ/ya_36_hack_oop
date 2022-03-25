@@ -196,6 +196,17 @@ def create_warriors(warriors_names, things):
     print("-------------------Все персонажи созданы----------------------")
     return All_warriors
 
+def Control_fight(HP: float, 
+                  F1: Person, F2: Person):
+    Attack_point = F1.attack_damage(F2) * F2.kritikal()
+    HP = HP- Attack_point
+    if HP < 0:
+        HP = 0
+    print(f'{F2.name} наносит удар по '
+          f'{F1.name} на {Attack_point:.1f}'
+          f' урона, здоровье {F1.name}: {HP:.1f}')
+    return  HP
+
 
 def Fight(fighter1, fighter2):
     HitPoints: float = 100  # переменная для контроля здоровья в ходе битвы
@@ -204,27 +215,13 @@ def Fight(fighter1, fighter2):
 
     print(f'--------Новый бой: {fighter1.name} здоровье {HitPoints1} vs '
           f'{fighter2.name} здоровье {HitPoints2}-------------')
+
     while HitPoints > 0:
-        Attack_point = fighter1.attack_damage(fighter2) * fighter2.kritikal()
-        HitPoints1 = HitPoints1-Attack_point
-        if HitPoints1 < 0:
-            HitPoints1 = 0
-        print(f'{fighter2.name} наносит удар по '
-              f'{fighter1.name} на {Attack_point:.1f}'
-              f' урона, здоровье {fighter1.name}: {HitPoints1:.1f}')
+        HitPoints1 = Control_fight(HitPoints1, fighter1, fighter2)
         if HitPoints1 == 0:
             break
-
-        if HitPoints2 > 0:
-            Attack_point = (fighter2.attack_damage(fighter1)
-                            * fighter1.kritikal())
-            HitPoints2 = HitPoints2-Attack_point
-            if HitPoints2 < 0:
-                HitPoints2 = 0
-            print(f'{fighter1.name} наносит удар по '
-                  f'{fighter2.name} на {Attack_point:.1f}'
-                  f' урона, здоровье {fighter2.name}: {HitPoints2:.1f}')
-        else:
+        HitPoints2 = Control_fight(HitPoints2, fighter2, fighter1)
+        if HitPoints2 == 0:
             break
         HitPoints = min(HitPoints1, HitPoints2)
 
@@ -234,6 +231,7 @@ def Fight(fighter1, fighter2):
     else:
         lost = fighter1
         win = fighter2
+
     print(f'------------------Итог: {fighter1.name}: '
           f'здоровье {HitPoints1:.1f}, '
           f'{fighter2.name}: здоровье {HitPoints2:.1f}')
@@ -249,18 +247,23 @@ All_warriors = create_warriors(warriors_names, things)
 print()
 print('В битве учавствуют:')
 for i in range(len(All_warriors)):
-    print(f'{All_warriors[i].name}')
+    print(f'{i+1} - {All_warriors[i].name}')
 print()
 
-
 while len(All_warriors) > 1:
-    fighter1 = random.choice(All_warriors)  # выбрали бойца номер 1
-    fighter2 = random.choice(All_warriors)  # выбрали бойца номер 2
+    User1 = input(f"Выберите бойца №1 (введите цифру от 1 до {len(All_warriors)}): ")
+    User2 = input(f"Выберите бойца №2 (введите цифру от 1 до {len(All_warriors)}): ")
+    Start_stop = input(f'Начать бой? (y/n)')
+    if Start_stop == "n": break
+
+    fighter1 = All_warriors[int(User1) - 1]  # выбрали бойца номер 1
+    fighter2 = All_warriors[int(User2) - 1]   # выбрали бойца номер 2
     if fighter1 != fighter2:
         lost = Fight(fighter1, fighter2)
         All_warriors.remove(lost)
+        print(f'Пока еще жив:')
         for i in range(len(All_warriors)):
-            print(f'Пока еще жив: {All_warriors[i].name}')
+            print(f'{i+1} - {All_warriors[i].name}')
         print()
 
 
